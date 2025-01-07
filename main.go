@@ -23,7 +23,9 @@ func main() {
 	router.MaxMultipartMemory = 8 << 20
 	// router.Use(middlewares.SetHTMLHeader())
 	routers.Routers(router)
+	router.Static("/movies/image", "./upload/movies")
+	router.Static("/profile/image", "./upload/profile")
 	docs.SwaggerInfo.BasePath = "/"
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-	router.Run("localhost:8888")
+	router.Run(":8888")
 }

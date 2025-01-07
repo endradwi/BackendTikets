@@ -1,0 +1,49 @@
+services:
+  backend1:
+    build: .
+    restart: always
+    networks:
+      webservices:
+        ipv4_address: 101.10.11.150
+    volumes:
+      - app:/upload
+    command: /bin/sh -c tail -f /dev/null
+  backend2:
+    build: .
+    restart: always
+    networks:
+      webservices:
+        ipv4_address: 101.10.11.155
+    volumes:
+      - app:/upload
+    command: /bin/sh -c tail -f /dev/null
+  backend3:
+    build: .
+    restart: always
+    networks:
+      webservices:
+        ipv4_address: 101.10.11.160
+    volumes:
+      - app:/upload
+    command: /bin/sh -c tail -f /dev/null
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1
+    volumes:
+      - ./base.sql:/docker-entrypoint-initdb.d/base.sql:ro
+    restart: always
+    networks:
+      webservices:
+        ipv4_address: 101.10.11.100
+networks:
+  webservices:
+    ipam:
+      driver: default
+      config:
+        - subnet: 101.10.0.0/16
+          ip_range: 101.10.0.0/24
+volumes:
+  app:

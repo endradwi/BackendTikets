@@ -71,7 +71,7 @@ func EditProfile(ctx *gin.Context) {
 		}
 
 		// handling name file
-		ctx.SaveUploadedFile(file, fmt.Sprintf("updload/profile/%s", storedFile))
+		ctx.SaveUploadedFile(file, fmt.Sprintf("upload/profile/%s", storedFile))
 		profile.Image = storedFile
 	}
 
