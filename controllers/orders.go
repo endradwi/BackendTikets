@@ -10,8 +10,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Orders godoc
+// @Schemes
+// @Description Add Choose Cinema tikers
+// @Tags Order Tiket
+// @Accept x-www-form-urlencoded
+// @Produce json
+// @Param id path int true "Select Movie Tiket"
+// @Param searchDate query string true "Search Date Cinema"
+// @Param searchTime query string true "Search Time Cinema"
+// @Param searchLocation query string true "Search Location Cinema"
+// @Success 200 {object} Response{results=models.MoviesCinema}
+// @Router /orders/cinema/{id} [get]
 func OrderMovies(ctx *gin.Context) {
-
 	var orderMovie models.OrderBody
 	err := ctx.ShouldBind(&orderMovie)
 
@@ -20,14 +31,14 @@ func OrderMovies(ctx *gin.Context) {
 		return
 	}
 
-	models.OrderTicket(orderMovie)
-	// log.Println("data apa =", order)
-	var orderPayment models.Payment
+	order := models.OrderTicket(orderMovie)
+	log.Println("data apa =", order)
+	// var orderPayment models.Payment
 
 	ctx.JSON(http.StatusOK, Response{
 		Success: true,
 		Message: "Order tiket sukses",
-		Results: orderPayment,
+		Results: order,
 	})
 
 }

@@ -134,14 +134,6 @@ func UpdatedProfile(profile Profile, userId int) Profile {
 		fmt.Println("Error updating user:", err)
 	}
 
-	// log.Println("password updated =", update.Password)
-	// log.Println("old updated =", profile.Password)
-
-	// hash := lib.CreateHash(update.Password)
-	// update.Password = hash
-
-	// log.Println("data hash =", hash)
-
 	return update
 }
 
@@ -170,20 +162,16 @@ func DeleteProfile(id int) Profile {
 	)
 	fmt.Println("data select =", text)
 
-	err := conn.QueryRow(context.Background(), `
+	conn.QueryRow(context.Background(), `
 	DELETE FROM users 
 	USING profile
 	WHERE users.id = profile.user_id AND profile_id = $1
 	`, id)
 
-	fmt.Println("data = ", err)
-
-	err = conn.QueryRow(context.Background(), `
+	conn.QueryRow(context.Background(), `
 	DELETE FROM profile WHERE id = $1
 	`, id)
 
-	fmt.Println("data =", err)
-	fmt.Println("data deleted =", profileDelete)
 	return profileDelete
 }
 

@@ -1,22 +1,3 @@
-DROP table cinema_date, cinema_location, cinema_time, cinemas, movies;
-
-
-SELECT profile.first_name, orders.id, cinemas.name , movies.tittle 
-from profile 
-full OUTER JOIN orders ON orders.profile_id = profile.id
-full OUTER JOIN cinemas ON cinemas.id = orders.cinema_id
-full OUTER JOIN movies ON movies.id = orders.movie_id
-;
-
-drop table cinemas;
-
-INSERT INTO movie (tittle, genre, images, synopsis,
-	author, actors, release_date, duration, tag) 
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-	RETURNING id, tittle, genre, images, synopsis,
-	author, actors, release_date, duration, tag;
-
-
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
     email VARCHAR(255),
@@ -35,45 +16,59 @@ CREATE TABLE profile(
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
-SELECT users.id, profile.first_name, profile.last_name,
-       profile.image, profile.phone_number, users.email, users.password
-	FROM users
-	JOIN profile ON profile.user_id = users.id 
-	WHERE users.id = $1;
-SELECT * FROM profile;
-SELECT * FROM USERS;
-ALTER TABLE profile ADD phone_number int;
-ALTER TABLE profile ADD point int;
-    SELECT profile.id, profile.first_name, profile.last_name, profile.phone_number,
-           users.email, users.password
-    FROM profile
-    JOIN users ON users.id = profile.user_id
-    WHERE profile.user_id = $1;
-
-drop table profile;
-DROP Table users;
-
-DROP TABLE orders;
 CREATE TABLE orders(
     id SERIAL PRIMARY KEY,
     profile_id INT REFERENCES profile(id),
     movie_id INT REFERENCES movies(id),
     cinema_id INT REFERENCES cinema(id),
-    seat_id INT REFERENCES seat(id),
-    date DATE,
+    payment_id INT REFERENCES payment_method(id),
+    seat VARCHAR[],
+    date_order DATE,
     qty INT,
     total_price INT,
-    payment_id int REFERENCES payment_method(id),
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP
+);
+drop TABLE orders, payment_method;
+CREATE TABLE payment_method (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
 
-SELECT users.id, profile.first_name, profile.last_name, profile.image, users.email, users.password
-FROM profile
-JOIN users ON users.id = profile.user_id
-ORDER BY users.id DESC;
+INSERT INTO payment_method (name) VALUES
+('Goggle Pay'), ('Visa'), ('Gopay'), ('Pay Pal'),
+('Dana'), ('Bank BCA'), ('Bank BRI'), ('OVO');
 
-drop table ORDERS;
+SELECt * FROM orders
+FULL OUTER JOIN payment_method ON payment_method.id = orders.payment_id;
+UPDATE orders
+SET payment_id = $1
+WHERE id = $2
+RETURNING id, profile_id, movie_id, cinema_id, payment_id, seat, date_order, qty, total_price;
+
+
+SELECT cinema.name, cinema_location.name_location
+	FROM cinema
+	JOIN cinema_location ON cinema_location.cinema_id = cinema.id;
+	-- WHERE cinema.id = $1 AND cinema_location.name_location = $2`,
+
+-- SELECT * from orders
+-- FULL OUTER JOIN profile ON profile.id = orders.profile_id;
+DROP TABLE orders;
+SELECT * from orders;
+
+INSERT INTO orders (profile_id, movie_id, cinema_id, seat_id, date_order, qty ) 
+		VALUES ($1, $2, $3, $4, $5, $6) 
+		RETURNING id, profile_id, movie_id, cinema_id, seat_id, date_order, qty;
+
+SELECT * from orders;
+SELECT seat.price FROM cinema 
+		JOIN seat ON seat.cinema_id = cinema.id
+		WHERE cinema.id = $1;
+
+
 CREATE TABLE movies(
     id SERIAL PRIMARY KEY,
     tittle VARCHAR(60),
@@ -91,106 +86,56 @@ CREATE TABLE movies(
 CREATE Table cinema(
     id serial PRIMARY KEY,
     name VARCHAR(50),
-    movies_id INT REFERENCES movies(id),
+    price INT,
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
-)
-CREATE TABLE cinema (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50),
-    movies_id INT REFERENCES movies(id)
 );
 
-INSERT INTO cinema (name, movies_id) VALUES
-('Cinepolis Mega Bekasi', 1),
-('CGV Grand Indonesia', 2),
-('Cinemaxx Lippo Mall Puri', 3),
-('XXI Plaza Indonesia', 4),
-('Cineworld Mall Kelapa Gading', 5),
-('CGV Pacific Place', 6),
-('Cinema XXI Tunjungan Plaza', 7),
-('Cinemaxx Surabaya', 8),
-('CGV Cinere Mall', 9),
-('Cinepolis Palembang', 10),
-('XXI Mall of Indonesia', 11),
-('CGV Blok M Square', 12),
-('Cinemaxx Transmart Carrefour', 13),
-('Cinema XXI Semanggi', 14),
-('CGV Central Park', 15),
-('Cinepolis Jakarta Garden City', 16),
-('XXI Grand City Mall Surabaya', 17),
-('Cinemaxx Park 23 Bali', 18),
-('CGV Bogor Trade Mall', 19),
-('Cinepolis Cilandak Town Square', 20),
-('Cinemaxx Festival City Link Bandung', 21),
-('CGV Epiwalk Mall', 22),
-('Cinepolis Dago Plaza Bandung', 23),
-('XXI Supermall Karawaci', 24),
-('CGV Mall Kota Kasablanka', 25),
-('Cinemaxx Mall Ciputra Cibubur', 26),
-('Cinepolis Trans Studio Mall Makassar', 27),
-('XXI Paris Van Java Bandung', 28),
-('Cinepolis Bandung Supermall', 29),
-('CGV La Piazza Mall', 30),
-('Cinemaxx Living World Alam Sutera', 31),
-('CGV Grand Indonesia', 32),
-('Cinemaxx Lippo Mall Puri', 33),
-('XXI Plaza Indonesia', 34),
-('Cineworld Mall Kelapa Gading', 35),
-('CGV Pacific Place', 36),
-('Cinema XXI Tunjungan Plaza', 37),
-('Cinemaxx Surabaya', 38),
-('CGV Cinere Mall', 39),
-('Cinepolis Palembang', 40),
-('XXI Mall of Indonesia', 1),
-('CGV Blok M Square', 2),
-('Cinemaxx Transmart Carrefour', 3),
-('Cinema XXI Semanggi', 4),
-('CGV Central Park', 5),
-('Cinepolis Jakarta Garden City', 6),
-('XXI Grand City Mall Surabaya', 7),
-('Cinemaxx Park 23 Bali', 8),
-('CGV Bogor Trade Mall', 9),
-('Cinepolis Cilandak Town Square', 10),
-('Cinemaxx Festival City Link Bandung', 11),
-('CGV Epiwalk Mall', 12),
-('Cinepolis Dago Plaza Bandung', 13),
-('XXI Supermall Karawaci', 14),
-('CGV Mall Kota Kasablanka', 15),
-('Cinemaxx Mall Ciputra Cibubur', 16),
-('Cinepolis Trans Studio Mall Makassar', 17),
-('XXI Paris Van Java Bandung', 18),
-('Cinepolis Bandung Supermall', 19),
-('CGV La Piazza Mall', 20),
-('Cinemaxx Living World Alam Sutera', 21);
+INSERT INTO cinema (name, price) VALUES
+('Cinepolis Mega Bekasi', 15000),
+('CGV Grand Indonesia',15000),
+('Cinemaxx Lippo Mall Puri',15000),
+('XXI Plaza Indonesia',15000),
+('Cineworld Mall Kelapa Gading',15000),
+('CGV Pacific Place',15000),
+('Cinema XXI Tunjungan Plaza',15000),
+('Cinemaxx Surabaya',15000),
+('CGV Cinere Mall',15000),
+('Cinepolis Palembang',15000),
+('XXI Mall of Indonesia',15000),
+('CGV Blok M Square',15000),
+('Cinemaxx Transmart Carrefour',15000),
+('Cinema XXI Semanggi',15000),
+('CGV Central Park',15000),
+('Cinepolis Jakarta Garden City',15000),
+('XXI Grand City Mall Surabaya',15000),
+('Cinemaxx Park 23 Bali',15000),
+('CGV Bogor Trade Mall',15000),
+('Cinepolis Cilandak Town Square',15000),
+('Cinemaxx Festival City Link Bandung',15000),
+('CGV Epiwalk Mall',15000),
+('Cinepolis Dago Plaza Bandung',15000),
+('XXI Supermall Karawaci',15000),
+('CGV Mall Kota Kasablanka',15000),
+('Cinemaxx Mall Ciputra Cibubur',15000),
+('Cinepolis Trans Studio Mall Makassar',15000),
+('XXI Paris Van Java Bandung',15000),
+('Cinepolis Bandung Supermall',15000),
+('CGV La Piazza Mall',15000),
+('Cinemaxx Living World Alam Sutera',15000),
+('CGV Grand Indonesia',15000),
+('Cinemaxx Lippo Mall Puri',15000),
+('XXI Plaza Indonesia',15000),
+('Cineworld Mall Kelapa Gading',15000),
+('CGV Pacific Place',15000),
+('Cinema XXI Tunjungan Plaza',15000),
+('Cinemaxx Surabaya',15000),
+('CGV Cinere Mall',15000);
 
-select * from movies;
-
-SELECT movies.id, movies.tittle, movies.genre,
-	movies.images, cinema.cinema_time, cinema.name, 
-	cinema.cinema_date, cinema.cinema_location
-	FROM cinema 
-    JOIN movies ON cinema.movies_id = movies.id
-    WHERE movies.id = $1 AND cinema.name ILIKE $2 
-    AND cinema.cinema_date LIKE $3 AND cinema.cinema_time LiKE $4 
-    AND cinema.cinema_location ILIKE $5
-
-drop table cinema_date, cinema_location, cinema_time;
-
-drop table cinema;
-drop Table seat;
-
-INSERT INTO orders(profile_id, movie_id, cinema_id, total_price, qty) VALUES (154, 1, 1, 10000, 2);
-
-
-SELECT price FROM cinema WHERE id = $1;
-select * from cinema;
-
-SELECT * from movies;
 
 CREATE TABLE cinema_date(
     id SERIAL PRIMARY KEY,
-    name_date VARCHAR(11),
+    name_date DATE,
     cinema_id int REFERENCES cinema(id),
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
@@ -237,27 +182,6 @@ VALUES
     ('2025-02-06', 37),
     ('2025-02-07', 38),
     ('2025-02-08', 39),
-    ('2025-02-09', 40),
-    ('2025-02-10', 41),
-    ('2025-02-11', 42),
-    ('2025-02-12', 43),
-    ('2025-02-13', 44),
-    ('2025-02-14', 45),
-    ('2025-02-15', 46),
-    ('2025-02-16', 47),
-    ('2025-02-17', 48),
-    ('2025-02-18', 49),
-    ('2025-02-19', 50),
-    ('2025-01-01', 51),
-    ('2025-01-02', 52),
-    ('2025-01-03', 53),
-    ('2025-01-04', 54),
-    ('2025-01-05', 55),
-    ('2025-01-06', 56),
-    ('2025-01-07', 57),
-    ('2025-01-08', 58),
-    ('2025-01-09', 59),
-    ('2025-01-10', 60),
     ('2025-01-11', 1),
     ('2025-01-12', 2),
     ('2025-01-13', 3),
@@ -296,30 +220,17 @@ VALUES
     ('2025-02-15', 36),
     ('2025-02-16', 37),
     ('2025-02-17', 38),
-    ('2025-02-18', 39),
-    ('2025-02-19', 40);
-
-
-drop table cinema_date;
-
-select * from cinema_date;
+    ('2025-02-18', 39);
 
 CREATE TABLE cinema_time(
     id SERIAL PRIMARY KEY,
-    name_time VARCHAR(10),
+    name_time TIME,
     cinema_id int REFERENCES cinema(id),
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP 
 );
 INSERT INTO cinema_time (name_time, cinema_id)
 VALUES
-    ('10:00:00', 50),
-    ('12:00:00', 50),
-    ('14:00:00', 50),
-    ('16:00:00', 50),
-    ('18:00:00', 50),
-    ('20:00:00', 50),
-    ('22:00:00', 50),
     ('10:00:00', 1),
     ('12:00:00', 1),
     ('14:00:00', 1),
@@ -592,84 +503,7 @@ VALUES
     ('16:00:00', 39),
     ('18:00:00', 39),
     ('20:00:00', 39),
-    ('22:00:00', 39),
-    ('10:00:00', 40),
-    ('12:00:00', 40),
-    ('14:00:00', 40),
-    ('16:00:00', 40),
-    ('18:00:00', 40),
-    ('20:00:00', 40),
-    ('22:00:00', 40),
-    ('10:00:00', 41),
-    ('12:00:00', 41),
-    ('14:00:00', 41),
-    ('16:00:00', 41),
-    ('18:00:00', 41),
-    ('20:00:00', 41),
-    ('22:00:00', 41),
-    ('10:00:00', 42),
-    ('12:00:00', 42),
-    ('14:00:00', 42),
-    ('16:00:00', 42),
-    ('18:00:00', 42),
-    ('20:00:00', 42),
-    ('22:00:00', 42),
-    ('10:00:00', 43),
-    ('12:00:00', 43),
-    ('14:00:00', 43),
-    ('16:00:00', 43),
-    ('18:00:00', 43),
-    ('20:00:00', 43),
-    ('22:00:00', 43),
-    ('10:00:00', 44),
-    ('12:00:00', 44),
-    ('14:00:00', 44),
-    ('16:00:00', 44),
-    ('18:00:00', 44),
-    ('20:00:00', 44),
-    ('22:00:00', 44),
-    ('10:00:00', 45),
-    ('12:00:00', 45),
-    ('14:00:00', 45),
-    ('16:00:00', 45),
-    ('18:00:00', 45),
-    ('20:00:00', 45),
-    ('22:00:00', 45),
-    ('10:00:00', 46),
-    ('12:00:00', 46),
-    ('14:00:00', 46),
-    ('16:00:00', 46),
-    ('18:00:00', 46),
-    ('20:00:00', 46),
-    ('22:00:00', 46),
-    ('10:00:00', 47),
-    ('12:00:00', 47),
-    ('14:00:00', 47),
-    ('16:00:00', 47),
-    ('18:00:00', 47),
-    ('20:00:00', 47),
-    ('22:00:00', 47),
-    ('10:00:00', 48),
-    ('12:00:00', 48),
-    ('14:00:00', 48),
-    ('16:00:00', 48),
-    ('18:00:00', 48),
-    ('20:00:00', 48),
-    ('22:00:00', 48),
-    ('10:00:00', 49),
-    ('12:00:00', 49),
-    ('14:00:00', 49),
-    ('16:00:00', 49),
-    ('18:00:00', 49),
-    ('20:00:00', 49),
-    ('22:00:00', 49),
-    ('10:00:00', 50),
-    ('12:00:00', 50),
-    ('14:00:00', 50),
-    ('16:00:00', 50),
-    ('18:00:00', 50),
-    ('20:00:00', 50),
-    ('22:00:00', 50);
+    ('22:00:00', 39);
 
 CREATE TABLE cinema_location(
     id SERIAL PRIMARY KEY,
@@ -719,45 +553,8 @@ INSERT INTO cinema_location (name_location, cinema_id) VALUES
 ('Probolinggo', 36),
 ('Tebing Tinggi', 37),
 ('Ternate', 38),
-('Blitar', 39),
-('Lhokseumawe', 40),
-('Cilegon', 41),
-('Purwakarta', 42),
-('Banjarbaru', 43),
-('Sleman', 44),
-('Bontang', 45),
-('Ponorogo', 46),
-('Magelang', 47),
-('Cianjur', 48),
-('Sukabumi', 49),
-('Rembang', 50);
-	SELECT movies.id, movies.tittle, movies.genre,
-	movies.images, cinema.name, cinema_time.name_time,
-	cinema_date.name_date, cinema_location.name_location
-	FROM cinema 
-    JOIN movies ON cinema.movies_id = movies.id
-	JOIN cinema_time ON cinema_time.cinema_id = cinema.id
-	JOIN cinema_date ON cinema_date.cinema_id = cinema.id
-	JOIN cinema_location ON cinema_location.cinema_id = cinema.id
-    WHERE movies.id = $1 AND cinema_time.name_time = $2
-	AND cinema_date.name_date = $3 AND cinema_location.name_location ILIKE $4
+('Blitar', 39);
 
-SELECT profile.id, orders.profile_id, orders.movie_id, movies.tittle,
-	movies.genre, movies.images, cinema.name, 
-	FORM profile
-	JOIN orders ON orders.profile_id = profile.id
-	-- JOIN movies ON movies.id = orders.movie_id
-	-- JOIN cinema ON cinema.id = ordes_cinema_id
-	WHERE profile.id = 1;
-
-SELECT profile.first_name, orders.profile_id, orders.movie_id,
-movies.tittle, movies.genre, movies.images, cinema.name
-from profile
-JOIN orders ON orders.profile_id = profile.id
-JOIN movies ON movies.id = orders.movie_id
-JOIN cinema ON cinema.id = orders.cinema_id
-WHERE profile.id = 1
-;
 
 CREATE TABLE seat (
     id serial PRIMARY KEY,
@@ -767,14 +564,7 @@ CREATE TABLE seat (
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
-DROP table seat;
 
-
-SELECT count(seat_id) as seat_id  From orders 
-WHERE id = $1;
-
-SELECT * from users;
-TRUNCATE TABLE seat;
 INSERT INTO seat (name, price, cinema_id) VALUES
 ('A1', 15000, 1),('A2', 15000, 1),('A3', 15000, 1),('A4', 15000, 1),('A5', 15000, 1),
 ('A6', 15000, 1),('A7', 15000, 1),('A8', 15000, 1),('A9', 15000, 1),('A10', 15000, 1),
@@ -793,22 +583,10 @@ INSERT INTO seat (name, price, cinema_id) VALUES
 ('F1', 15000, 1),('F2', 15000, 1),('F3', 15000, 1),('F4', 15000, 1),('F5', 15000, 1),
 ('F6', 15000, 1),('F7', 15000, 1),('F8', 15000, 1),('F9', 15000, 1),('F10', 15000, 1),
 ('F11', 15000, 1),('F12', 15000, 1),('F13', 15000, 1),('F14', 15000, 1),('G1', 15000, 1),
-('G2', 15000, 1),('G3', 15000, 1),('G4', 15000, 1),('G5', 15000, 1),('G6', 15000, 1);
-('G7', 15000, 1),('G8', 15000, 1),('G9'), 15000, 1,('G10', 15000, 1),('G10', 15000, 1),
+('G2', 15000, 1),('G3', 15000, 1),('G4', 15000, 1),('G5', 15000, 1),('G6', 15000, 1),
+('G7', 15000, 1),('G8', 15000, 1),('G9', 15000, 1),('G10', 15000, 1),('G10', 15000, 1),
 ('G11', 15000, 1),('G12', 15000, 1),('G13', 15000, 1),('G14', 15000, 1);
 
-
-
-CREATE TABLE payment_method (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50),
-    created_at TIMESTAMP DEFAULT now(),
-    updated_at TIMESTAMP
-);
-
-INSERT INTO payment_method (name) VALUES
-('Goggle Pay'), ('Visa'), ('Gopay'), ('Pay Pal'),
-('Dana'), ('Bank BCA'), ('Bank BRI'), ('OVO');
 UPDATE users
 	SET email=$1, password=$2
 	FROM profile
@@ -857,141 +635,6 @@ SELECT * from users;
 
 drop table orders;
 drop TABLE seat;
-
-INSERT INTO users (email, password) VALUES
-('john.doe@example.com', 'password123'),
-('jane.smith@example.com', 'password123'),
-('michael.brown@example.com', 'password123'),
-('emily.jones@example.com', 'password123'),
-('chris.davis@example.com', 'password123'),
-('sarah.miller@example.com', 'password123'),
-('david.moore@example.com', 'password123'),
-('mary.taylor@example.com', 'password123'),
-('robert.anderson@example.com', 'password123'),
-('lisa.thomas@example.com', 'password123'),
-('james.jackson@example.com', 'password123'),
-('patricia.white@example.com', 'password123'),
-('charles.harris@example.com', 'password123'),
-('joseph.martin@example.com', 'password123'),
-('jennifer.lee@example.com', 'password123'),
-('mark.young@example.com', 'password123'),
-('nancy.king@example.com', 'password123'),
-('kevin.green@example.com', 'password123'),
-('daniel.adams@example.com', 'password123'),
-('susan.carter@example.com', 'password123'),
-('william.hernandez@example.com', 'password12'),
-('barbara.martinez@example.com', 'password123'),
-('david.garcia@example.com', 'password123'),
-('linda.rodriguez@example.com', 'password123'),
-('george.wilson@example.com', 'password123'),
-('elizabeth.moore@example.com', 'password123'),
-('joseph.taylor@example.com', 'password123'),
-('martha.jackson@example.com', 'password123'),
-('nicholas.johnson@example.com', 'password123'),
-('christopher.brown@example.com', 'password123'),
-('jacqueline.martin@example.com', 'password123'),
-('george.clark@example.com', 'password123'),
-('melissa.wright@example.com', 'password123'),
-('susan.garcia@example.com', 'password123'),
-('daniel.kim@example.com', 'password123'),
-('julia.martinez@example.com', 'password123'),
-('aaron.williams@example.com', 'password123'),
-('heather.perez@example.com', 'password123'),
-('roberto.smith@example.com', 'password123'),
-('laura.johnson@example.com', 'password123'),
-('joseph.smith@example.com', 'password123'),
-('anna.white@example.com', 'password123'),
-('brian.miller@example.com', 'password123'),
-('lisa.davis@example.com', 'password123'),
-('john.morris@example.com', 'password123'),
-('susan.kelly@example.com', 'password123'),
-('stephen.smith@example.com', 'password123'),
-('lisa.campbell@example.com', 'password123'),
-('jackson.evans@example.com', 'password123'),
-('olivia.jenkins@example.com', 'password123'),
-('elizabeth.sullivan@example.com', 'password10'),
-('benjamin.wood@example.com', 'password123'),
-('rachel.lee@example.com', 'password123'),
-('ethan.owen@example.com', 'password123'),
-('zoe.adams@example.com', 'password123'),
-('rachel.morris@example.com', 'password123'),
-('louis.james@example.com', 'password123'),
-('michelle.harris@example.com', 'password123'),
-('nathan.wilson@example.com', 'password123'),
-('laura.jameson@example.com', 'password123'),
-('victor.carter@example.com', 'password123'),
-('cheryl.roberts@example.com', 'password123'),
-('olivia.morris@example.com', 'password123'),
-('grace.hernandez@example.com', 'password123'),
-('henry.king@example.com', 'password123'),
-('elizabeth.carter@example.com', 'password123'),
-('joseph.brown@example.com', 'password123');
-
-select * from profile;
-INSERT INTO profile (first_name, last_name, image, user_id) VALUES
-('John', 'Doe', 'https://example.com/images/john_doe.jpg', 1);
-
-INSERT INTO profile (first_name, last_name, image, user_id) VALUES
-('John', 'Doe', 'https://example.com/images/john_doe.jpg', 1),
-('Jane', 'Smith', 'https://example.com/images/jane_smith.jpg', 2),
-('Michael', 'Brown', 'https://example.com/images/michael_brown.jpg', 3),
-('Emily', 'Jones', 'https://example.com/images/emily_jones.jpg', 4),
-('Chris', 'Davis', 'https://example.com/images/chris_davis.jpg', 5),
-('Sarah', 'Miller', 'https://example.com/images/sarah_miller.jpg', 6),
-('David', 'Moore', 'https://example.com/images/david_moore.jpg', 7),
-('Mary', 'Taylor', 'https://example.com/images/mary_taylor.jpg', 8),
-('Robert', 'Anderson', 'https://example.com/images/robert_anderson.jpg', 9),
-('Lisa', 'Thomas', 'https://example.com/images/lisa_thomas.jpg', 10),
-('James', 'Jackson', 'https://example.com/images/james_jackson.jpg', 11),
-('Patricia', 'White', 'https://example.com/images/patricia_white.jpg', 12),
-('Charles', 'Harris', 'https://example.com/images/charles_harris.jpg', 13),
-('Joseph', 'Martin', 'https://example.com/images/joseph_martin.jpg', 14),
-('Jennifer', 'Lee', 'https://example.com/images/jennifer_lee.jpg', 15),
-('Mark', 'Young', 'https://example.com/images/mark_young.jpg', 16),
-('Nancy', 'King', 'https://example.com/images/nancy_king.jpg', 17),
-('Kevin', 'Green', 'https://example.com/images/kevin_green.jpg', 18),
-('Daniel', 'Adams', 'https://example.com/images/daniel_adams.jpg', 19),
-('Susan', 'Carter', 'https://example.com/images/susan_carter.jpg', 20),
-('William', 'Hernandez', 'https://example.com/images/william_hernandez.jpg', 21),
-('Barbara', 'Martinez', 'https://example.com/images/barbara_martinez.jpg', 22),
-('David', 'Garcia', 'https://example.com/images/david_garcia.jpg', 23),
-('Linda', 'Rodriguez', 'https://example.com/images/linda_rodriguez.jpg', 24),
-('George', 'Wilson', 'https://example.com/images/george_wilson.jpg', 25),
-('Elizabeth', 'Moore', 'https://example.com/images/elizabeth_moore.jpg', 26),
-('Joseph', 'Taylor', 'https://example.com/images/joseph_taylor.jpg', 27),
-('Martha', 'Jackson', 'https://example.com/images/martha_jackson.jpg', 28),
-('Nicholas', 'Johnson', 'https://example.com/images/nicholas_johnson.jpg', 29),
-('Christopher', 'Brown', 'https://example.com/images/christopher_brown.jpg', 30),
-('Jacqueline', 'Martin', 'https://example.com/images/jacqueline_martin.jpg', 31),
-('George', 'Clark', 'https://example.com/images/george_clark.jpg', 32),
-('Melissa', 'Wright', 'https://example.com/images/melissa_wright.jpg', 33),
-('Susan', 'Garcia', 'https://example.com/images/susan_garcia.jpg', 34),
-('Daniel', 'Kim', 'https://example.com/images/daniel_kim.jpg', 35),
-('Julia', 'Martinez', 'https://example.com/images/julia_martinez.jpg', 36),
-('Aaron', 'Williams', 'https://example.com/images/aaron_williams.jpg', 37),
-('Heather', 'Perez', 'https://example.com/images/heather_perez.jpg', 38),
-('Roberto', 'Smith', 'https://example.com/images/roberto_smith.jpg', 39),
-('Laura', 'Johnson', 'https://example.com/images/laura_johnson.jpg', 40),
-('Joseph', 'Smith', 'https://example.com/images/joseph_smith.jpg', 41),
-('Anna', 'White', 'https://example.com/images/anna_white.jpg', 42),
-('Brian', 'Miller', 'https://example.com/images/brian_miller.jpg', 43),
-('Lisa', 'Davis', 'https://example.com/images/lisa_davis.jpg', 44),
-('John', 'Morris', 'https://example.com/images/john_morris.jpg', 45),
-('Susan', 'Kelly', 'https://example.com/images/susan_kelly.jpg', 46),
-('Stephen', 'Smith', 'https://example.com/images/stephen_smith.jpg', 47),
-('Lisa', 'Campbell', 'https://example.com/images/lisa_campbell.jpg', 48),
-('Jackson', 'Evans', 'https://example.com/images/jackson_evans.jpg', 49),
-('Olivia', 'Jenkins', 'https://example.com/images/olivia_jenkins.jpg', 50),
-('William', 'Reed', 'https://example.com/images/william_reed.jpg', 51),
-('Charlotte', 'Baker', 'https://example.com/images/charlotte_baker.jpg', 52),
-('George', 'King', 'https://example.com/images/george_king.jpg', 53),
-('Isabella', 'Scott', 'https://example.com/images/isabella_scott.jpg', 54),
-('Samuel', 'Adams', 'https://example.com/images/samuel_adams.jpg', 55),
-('Lily', 'Martinez', 'https://example.com/images/lily_martinez.jpg', 56),
-('Matthew', 'Lee', 'https://example.com/images/matthew_lee.jpg', 57),
-('Sophia', 'Allen', 'https://example.com/images/sophia_allen.jpg', 58),
-('Henry', 'Hall', 'https://example.com/images/henry_hall.jpg', 59),
-('Grace', 'Bennett', 'https://example.com/images/grace_bennett.jpg', 60);
 
 INSERT INTO movies (tittle, genre, images, synopsis, author, actors, release_date, duration, tag) VALUES
 ('Avatar', 'Action, Adventure, Science Fiction', 'avatar.jpg', 'Di dunia Pandora, manusia berusaha mengeksploitasi sumber daya alam, sementara kelompok Navi berjuang untuk melindungi rumah mereka.', 'James Cameron', 'Sam Worthington, Zoe Saldana', '2009-12-18', '02:42:00', 'epic'),
