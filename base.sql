@@ -549,14 +549,32 @@ INSERT INTO cinema_location (name_location, cinema_id) VALUES
 CREATE TABLE payment_method (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50),
+    rekening VARCHAR(20),
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
 
-INSERT INTO payment_method (name) VALUES
-('Goggle Pay'), ('Visa'), ('Gopay'), ('Pay Pal'),
-('Dana'), ('Bank BCA'), ('Bank BRI'), ('OVO');
+INSERT INTO payment_method (name, rekening) VALUES
+('Goggle Pay', '1234567890123456'), ('Visa','2345678901234567'), 
+('Gopay', '3456789012345678'), ('Pay Pal', '4567890123456789'),
+('Dana', '3456789012345678'), ('Bank BCA', '2345678901234567'), 
+('Bank BRI', '4567890123456789'), ('OVO', '1234567890123456');
 
+CREATE TABLE status_payment(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(10),
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP
+);
+
+INSERT INTO status_payment (name) VALUES
+('Paid'), ('Not Paid');
+
+SELECT * FROM status_payment;
+DROP TABLE status_payment;
+drop TABLE orders;
+
+select * from orders;
 CREATE TABLE orders(
     id SERIAL PRIMARY KEY,
     profile_id INT REFERENCES profile(id),
@@ -567,6 +585,13 @@ CREATE TABLE orders(
     date_order DATE,
     qty INT,
     total_price INT,
+    expired_payment DATE,
+    status_id INT REFERENCES status_payment(id),
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
+
+
+
+SELECT total_price FROM orders
+		WHERE id = $1

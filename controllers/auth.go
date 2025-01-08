@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -99,7 +98,6 @@ func AuthLogin(ctx *gin.Context) {
 	ctx.ShouldBind(&form)
 
 	foundUser := models.FindOneUserByEmail(form.Email)
-	fmt.Println("data = ", foundUser)
 	if form.Email != foundUser.Email {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Success: false,
@@ -122,6 +120,7 @@ func AuthLogin(ctx *gin.Context) {
 	}{
 		UserId: foundUser.Id,
 	})
+	// fmt.Println("data = ", token)
 	ctx.JSON(http.StatusOK, Response{
 		Success: true,
 		Message: "Login Success",

@@ -4,6 +4,7 @@ import (
 	"test/docs"
 	"test/routers"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -20,6 +21,10 @@ import (
 // @name					   Authorization
 func main() {
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		// AllowAllOrigins: true,
+		AllowOrigins: []string{"*"},
+	}))
 	router.MaxMultipartMemory = 8 << 20
 	// router.Use(middlewares.SetHTMLHeader())
 	routers.Routers(router)
