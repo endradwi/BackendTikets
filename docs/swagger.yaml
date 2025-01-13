@@ -145,6 +145,28 @@ definitions:
       phone_number:
         type: string
     type: object
+  models.UserAdmin:
+    properties:
+      email:
+        example: salah@mail.com
+        type: string
+      first_name:
+        example: Salah
+        type: string
+      id:
+        type: integer
+      image:
+        example: salah.jpg
+        type: string
+      last_name:
+        example: Alaudin
+        type: string
+      password:
+        example: Salah1!
+        type: string
+      phone_number:
+        type: string
+    type: object
 info:
   contact: {}
   description: Profile server
@@ -553,10 +575,11 @@ paths:
       - ApiKeyAuth: []
       tags:
       - Profile
+  /users:
     post:
       consumes:
       - multipart/form-data
-      description: Add Profile
+      description: Add User
       parameters:
       - description: First Name User
         in: formData
@@ -598,13 +621,13 @@ paths:
             - $ref: '#/definitions/controllers.Response'
             - properties:
                 results:
-                  $ref: '#/definitions/models.Profile'
+                  $ref: '#/definitions/models.UserAdmin'
               type: object
       security:
       - ApiKeyAuth: []
-      summary: Profile
+      summary: User
       tags:
-      - Profile
+      - User
 securityDefinitions:
   ApiKeyAuth:
     in: header

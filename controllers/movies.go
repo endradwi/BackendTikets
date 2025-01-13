@@ -31,7 +31,7 @@ import (
 func GetAllMovies(ctx *gin.Context) {
 	search := ctx.DefaultQuery("search", "")
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "5"))
+	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	sortmovie := ctx.DefaultQuery("sort", "ASC")
 	if sortmovie != "ASC" {
 		sortmovie = "DESC"
@@ -148,6 +148,7 @@ func EditMovie(ctx *gin.Context) {
 	if err := ctx.ShouldBind(&movie); err != nil {
 		ctx.Status(http.StatusInternalServerError)
 	}
+	// f, _ := ctx.MultipartForm()
 	file, _ := ctx.FormFile("image")
 
 	if file.Filename != "" {
@@ -212,37 +213,44 @@ func SaveMovies(ctx *gin.Context) {
 	var formData models.Movie_body
 	text := ctx.ShouldBind(&formData)
 	log.Println("data=", text)
-	// file, _ := ctx.FormFile("image")
-	// filename := uuid.New().String()
-	// splitfile := strings.Split(file.Filename, ".")[1]
-	// ext := splitfile[len(splitfile)-1]
-	// storedFile := fmt.Sprintf("%s.%s", filename, ext)
-	// if file.Size > 2<<8 {
-	// ctx.JSON(400, Response{
-	// Success: false,
-	// Message: "Image to large",
-	// })
-	// return
-	// }
-	// ctx.SaveUploadedFile(file, fmt.Sprintf("uploads/movies/%s", storedFile))
-	// if file.Filename != "" {
-	// formData.Image = storedFile
-	// }
+	f, _ := ctx.MultipartForm()
+	file, _ := ctx.FormFile("image")
+
+	formData.Release_date = f.Value["release_date"][0]
+	formData.Duration = f.Value["duration"][0]
+
+	if file.Filename != "" {
+		filename := uuid.New().String()
+
+		// handling extentioin .jpg dll
+		splitedFilename := strings.Split(file.Filename, ".")
+		ext := splitedFilename[len(splitedFilename)-1]
+		storedFile := fmt.Sprintf("%s.%s", filename, ext)
+		if ext != "jpg" && ext != "png" && ext != "jpeg" {
+			ctx.JSON(http.StatusBadRequest, Response{
+				Success: false,
+				Message: "Must Fill .jpg, .jpeg, .png",
+			})
+			return
+		}
+
+		// handling name file
+		ctx.SaveUploadedFile(file, fmt.Sprintf("upload/movies/%s", storedFile))
+		formData.Image = storedFile
+	}
+
+	// Validation Size File
+	maxfile := 1 * 1024 * 1024
+	if file.Size > int64(maxfile) {
+		ctx.JSON(400, Response{
+			Success: false,
+			Message: "File to Large",
+		})
+		return
+	}
 
 	temp, _ := models.InsertMovie(formData)
 
-	// data := lib.Redis().Scan(context.Background(), 0, "", 0).Iterator()
-	// for data.Next(context.Background()) {
-
-	// }
-	// var row = Movie{
-	// 	Tittle:      formData.Tittle,
-	// 	Image:       formData.Image,
-	// 	Description: formData.Description,
-	// }
-	//
-	// row.Id = len(ListMovie) + 1
-	// ListMovie = append(ListMovie, row)
 	ctx.JSON(200, Response{
 		Success: true,
 		Message: "Your Movie Saved",

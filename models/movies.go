@@ -14,13 +14,13 @@ type MoviesbyTag struct {
 	Id       int    `json:"id"`
 	Tittle   string `json:"tittle" form:"tittle" example:"Spiderman"`
 	Genre    string `json:"genre" form:"genre" example:"Action"`
-	Image    string `json:"image" form:"image" example:"Spiderman.jpg"`
 	Synopsis string `json:"synopsis" form:"synopsis" example:"film action universal"`
 	Author   string `json:"author" form:"author"`
 	Actors   string `json:"actors" form:"actors"`
 	// Release_date time.Time `json:"release_date" form:"release_date"`
 	// Duration     time.Time `json:"duration" form:"duration"`
-	Tag string `json:"tag" form:"tag"`
+	Tag   string `json:"tag" form:"tag"`
+	Image string `json:"image" form:"image" example:"Spiderman.jpg"`
 }
 type MoviesNoTag struct {
 	Id           int       `json:"id"`
@@ -100,11 +100,11 @@ func FindOneMovie(paramId int) MoviesNoTag {
 	var movie MoviesNoTag
 
 	conn.QueryRow(context.Background(), `
-	SELECT id, tittle, genre, synopsis, 
+	SELECT id, tittle, genre, images, synopsis, 
 	author, actors, release_date, duration
 	FROM movies 
     WHERE id = $1
-	`, paramId).Scan(&movie.Id, &movie.Tittle, &movie.Genre,
+	`, paramId).Scan(&movie.Id, &movie.Tittle, &movie.Genre, &movie.Image,
 		&movie.Synopsis, &movie.Author, &movie.Actors,
 		&movie.Release_date, &movie.Duration)
 	return movie

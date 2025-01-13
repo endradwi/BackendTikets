@@ -14,7 +14,7 @@ type Profile struct {
 	First_Name   string `json:"first_name" form:"first_name" example:"Salah"`
 	Last_Name    string `json:"last_name" form:"last_name" example:"Alaudin"`
 	Phone_number string `json:"phone_number" form:"phone_number"`
-	Image        string `jsoon:"image" form:"image" example:"salah.jpg"`
+	Image        string `json:"image" form:"-" example:"salah.jpg"`
 	Email        string `json:"email" form:"email" example:"salah@mail.com"`
 	Password     string `json:"password" form:"password" example:"Salah1!"`
 }

@@ -16,6 +16,9 @@ CREATE TABLE profile(
     created_at TIMESTAMP DEFAULT now(),
     updated_at TIMESTAMP
 );
+select * from users;
+
+SELECT * from movies;
 
 CREATE TABLE movies(
     id SERIAL PRIMARY KEY,

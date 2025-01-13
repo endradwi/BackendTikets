@@ -10,8 +10,7 @@ func Routers(router *gin.Engine) {
 		// AllowAllOrigins: true,
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"Authorization"},
-		// AllowMethods: []string{"GET", "POST", "PATCH"},
-
+		AllowMethods: []string{"GET", "POST", "PATCH"},
 	}))
 	ProfileRouter(router.Group("/profile"))
 	AuthRouters(router.Group("/auth"))
