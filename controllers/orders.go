@@ -80,3 +80,24 @@ func GetMovieCinema(ctx *gin.Context) {
 	})
 
 }
+
+func GetCinema(ctx *gin.Context) {
+	var input models.GetCinemaDTO
+
+	if err := ctx.ShouldBind(&input); err != nil {
+		fmt.Println("Binding Error:", err)
+		return
+	}
+
+	fmt.Println("input", input)
+	// Query cinema
+	cinema, err := models.FindCinema(input)
+	if err != nil {
+		return
+	}
+	ctx.JSON(http.StatusOK, Response{
+		Success: true,
+		Message: "Cinema Selected And Choose Yout seat",
+		Results: cinema,
+	})
+}

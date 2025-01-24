@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"test/lib"
@@ -36,36 +35,41 @@ func EditProfile(ctx *gin.Context) {
 		})
 		return
 	}
-	// log.Println("data val =", val)
-	// userId := int(val.(float64))
-	// log.Println("data =", userId)
+
 	var profile models.Profile
 	// handling body form without file
-	ctx.ShouldBind(&profile)
-	log.Println(profile)
-	f, _ := ctx.MultipartForm()
-	file, err := ctx.FormFile("image")
-	if err != nil && strings.Contains(err.Error(), "no such file") {
-		log.Println(err)
-		ctx.JSON(http.StatusInternalServerError, Response{
-			Success: false,
-			Message: "Unauthorized file name",
-		})
+	err := ctx.ShouldBind(&profile)
+	if err != nil {
+		fmt.Println("Error From Body", err)
 	}
-	// if file.Filename == "" {
-	// log.Println("Hello World")
-	// }
-	log.Print("data file =", file.Filename)
+	fmt.Println("data profile=", profile)
 
-	profile.Email = f.Value["email"][0]
-	profile.Password = f.Value["password"][0]
+	// f, _ := ctx.MultipartForm()
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		if strings.Contains(err.Error(), "no such file") {
+			ctx.JSON(http.StatusBadRequest, Response{
+				Success: false,
+				Message: "No file uploaded",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, Response{
+				Success: false,
+				Message: "Internal Server Error",
+			})
+		}
+		return
+	}
 
-	if file.Filename != "" {
+	// profile.Email = f.Value["email"][0]
+	// profile.Password = f.Value["password"][0]
+
+	if file != nil && file.Filename != "" {
 		filename := uuid.New().String()
 
-		// handling extentioin .jpg dll
-		splitedFilename := strings.Split(file.Filename, ".")
-		ext := splitedFilename[len(splitedFilename)-1]
+		// handling extension .jpg dll
+		splittedFilename := strings.Split(file.Filename, ".")
+		ext := splittedFilename[len(splittedFilename)-1]
 		storedFile := fmt.Sprintf("%s.%s", filename, ext)
 		if ext != "jpg" && ext != "png" && ext != "jpeg" {
 			ctx.JSON(http.StatusBadRequest, Response{
@@ -75,27 +79,23 @@ func EditProfile(ctx *gin.Context) {
 			return
 		}
 
-		// handling name file
+		// handling nama file
 		ctx.SaveUploadedFile(file, fmt.Sprintf("upload/profile/%s", storedFile))
 		profile.Image = storedFile
 	}
 
 	// Validation Size File
 	maxfile := 1 * 1024 * 1024
-	if file.Size > int64(maxfile) {
+	if file != nil && file.Size > int64(maxfile) {
 		ctx.JSON(400, Response{
 			Success: false,
-			Message: "File to Large",
+			Message: "File is too Large",
 		})
 		return
 	}
 	if profile.Password != "" {
 		hash := lib.CreateHash(profile.Password)
 		profile.Password = hash
-	}
-	if profile.First_Name == "" || profile.Last_Name == "" || profile.Phone_number == "" ||
-		profile.Image == "" || profile.Email == "" || profile.Password == "" {
-		models.UpdatedProfile(profile, val.(int))
 	}
 	updated := models.UpdatedProfile(profile, val.(int))
 

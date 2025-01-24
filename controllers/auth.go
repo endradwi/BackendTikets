@@ -101,7 +101,7 @@ func AuthLogin(ctx *gin.Context) {
 	if form.Email != foundUser.Email {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Success: false,
-			Message: "Email Not Found",
+			Message: "Invalid Email & Password",
 		})
 		return
 	}
@@ -110,7 +110,7 @@ func AuthLogin(ctx *gin.Context) {
 	if !match {
 		ctx.JSON(http.StatusBadRequest, Response{
 			Success: false,
-			Message: "Invalid Password",
+			Message: "Invalid Email & Password",
 		})
 		return
 	}

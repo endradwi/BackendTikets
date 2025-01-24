@@ -73,6 +73,20 @@ type SeatCinema struct {
 	Seats           []seat `json:"seat" from:"seat[]"`
 }
 
+type GetCinemaDTO struct {
+	MovieId  int    `form:"movie_id"`
+	Location string `form:"location"`
+	Date     string `form:"date"`
+	Time     string `form:"time"`
+}
+type GetCinema struct {
+	Movie_Id int
+	Cinema   string
+	Location string
+	Date     time.Time
+	Time     time.Time
+}
+
 type TotalSeatCinema struct {
 	SeatCinema
 	Total_Seat int
@@ -81,6 +95,7 @@ type TotalSeatCinema struct {
 type ListCinema []MoviesCinema
 
 type ListOrders []Orders
+type GetCinemas []GetCinema
 
 func OrderTicket(data OrderBody) OrderData {
 	conn := lib.DB()
@@ -146,4 +161,50 @@ func BookingCinema(paramId int, searchTime string, searchDate string, searchLoca
 	}
 	log.Println("data cinema =", cinema)
 	return cinema
+}
+
+func FindCinema(input GetCinemaDTO) (GetCinema, error) {
+	conn := lib.DB()
+	fmt.Println("data conn=", conn)
+	defer conn.Close(context.Background())
+
+	var movie GetCinema
+	// parsedDate, err := time.Parse("2006-01-02", input.Date)
+	// if err != nil {
+	// fmt.Println("Error parsing date:", err)
+	// return
+	// }
+	// parsedTime, err := time.Parse("15:04:05", input.Time)
+	// if err != nil {
+	// fmt.Println("Error parsing time:", err)
+	// return
+	// }
+
+	log.Println("data =", input.Time)
+	log.Println("data =", input.Date)
+	// log.Println(parsedDate)
+	// log.Println(parsedTime)
+
+	err := conn.QueryRow(context.Background(), `
+	SELECT movies.id, cinema.name, cinema_location.name_location, cinema_date.name_date, 
+		cinema_time.name_time
+	FROM movie_schedules
+	JOIn movies ON movie_id = movies.id
+	JOIN cinema ON cinema_id = cinema.id
+	JOIN cinema_location ON location_id = cinema_location.id
+	JOIN cinema_date ON date_id = cinema_date.id
+	JOIN cinema_time ON time_id = cinema_time.id
+	WHERE movie_id = $1 
+    AND cinema_location.name_location = $2 
+	AND cinema_date.name_date = $3 
+    AND cinema_time.name_time = $4
+	`, input.MovieId, input.Location, input.Date, input.Time).Scan(&movie.Movie_Id, &movie.Cinema, &movie.Location,
+		&movie.Date, &movie.Time)
+	fmt.Println(err)
+	fmt.Println("Input values:", input.MovieId, input.Location, input.Date, input.Time)
+	fmt.Println("Input movie:", movie)
+	// fmt.Println("Query executed successfully, movie:", movie)
+
+	// fmt.Println("data = )
+	return movie, nil
 }

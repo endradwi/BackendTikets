@@ -36,10 +36,11 @@ type MoviesNoTag struct {
 }
 
 type GetAllMovie struct {
-	Id     int    `json:"id"`
-	Tittle string `json:"tittle" form:"tittle" example:"Spiderman"`
-	Genre  string `json:"genre" form:"genre" example:"Action"`
-	Images string `json:"image" form:"image" example:"Spiderman.jpg"`
+	Id           int       `json:"id"`
+	Tittle       string    `json:"tittle" form:"tittle" example:"Spiderman"`
+	Genre        string    `json:"genre" form:"genre" example:"Action"`
+	Images       string    `json:"image" form:"image" example:"Spiderman.jpg"`
+	Release_date time.Time `json:"release_date" form:"release_date"`
 }
 
 type Movie_body struct {
@@ -66,7 +67,7 @@ func FindAllMovie(page int, limit int, search string, sort string) ListAllMovie 
 	searching := fmt.Sprintf("%%%s%%", search)
 
 	query := fmt.Sprintf(`
-	SELECT id, tittle, genre ,images
+	SELECT id, tittle, genre ,images, release_date
 	FROM movies
 	WHERE tittle ILIKE $1
  	ORDER BY id %s
