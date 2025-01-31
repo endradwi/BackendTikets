@@ -55,34 +55,34 @@ func OrderMovies(ctx *gin.Context) {
 // @Param searchLocation query string true "Search Location Cinema"
 // @Success 200 {object} Response{results=models.MoviesCinema}
 // @Router /orders/cinema/{id} [get]
-func GetMovieCinema(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		log.Println(err)
-	}
-	log.Println(id)
-	searchDate := ctx.DefaultQuery("searchDate", "")
-	log.Println("seardate =", searchDate)
-	searchTime := ctx.DefaultQuery("searchTime", "")
-	log.Println("seartime =", searchTime)
-	searchLocation := ctx.DefaultQuery("searchLocation", "")
-	log.Println("searlocation =", searchLocation)
-	// var cinema models.ListCinema
+// func GetMovieCinema(ctx *gin.Context) {
+// 	id, err := strconv.Atoi(ctx.Param("id"))
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
+// 	log.Println(id)
+// 	searchDate := ctx.DefaultQuery("searchDate", "")
+// 	log.Println("seardate =", searchDate)
+// 	searchTime := ctx.DefaultQuery("searchTime", "")
+// 	log.Println("seartime =", searchTime)
+// 	searchLocation := ctx.DefaultQuery("searchLocation", "")
+// 	log.Println("searlocation =", searchLocation)
+// 	// var cinema models.ListCinema
 
-	cinema := models.BookingCinema(id, searchTime, searchDate, searchLocation)
-	log.Print("print cinema =", cinema)
-	// log.Println(find.Cinema_time)
+// 	cinema := models.BookingCinema(id, searchTime, searchDate, searchLocation)
+// 	log.Print("print cinema =", cinema)
+// 	// log.Println(find.Cinema_time)
 
-	ctx.JSON(http.StatusOK, Response{
-		Success: true,
-		Message: "Cinema Selected And Choose Yout seat",
-		Results: cinema,
-	})
+// 	ctx.JSON(http.StatusOK, Response{
+// 		Success: true,
+// 		Message: "Cinema Selected And Choose Yout seat",
+// 		Results: cinema,
+// 	})
+// }
 
-}
-
-func GetCinema(ctx *gin.Context) {
-	var input models.GetCinemaDTO
+func GetCinem(ctx *gin.Context) {
+	id, _ := strconv.Atoi(ctx.Param("id"))
+	var input models.MoviesCinema
 
 	if err := ctx.ShouldBind(&input); err != nil {
 		fmt.Println("Binding Error:", err)
@@ -91,10 +91,10 @@ func GetCinema(ctx *gin.Context) {
 
 	fmt.Println("input", input)
 	// Query cinema
-	cinema, err := models.FindCinema(input)
-	if err != nil {
-		return
-	}
+	cinema := models.BookingCinema(id, input.Location)
+	// if err != nil {
+	// 	return
+	// }
 	ctx.JSON(http.StatusOK, Response{
 		Success: true,
 		Message: "Cinema Selected And Choose Yout seat",

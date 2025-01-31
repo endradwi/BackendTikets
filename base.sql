@@ -187,6 +187,29 @@ INSERT INTO cinema_location (name_location) VALUES
 ('Depok'),
 ('Bekasi');
 
+	SELECT movies.id, movies.tittle, movies.genre, 
+movies.images, movies.synopsis, movies.author, 
+movies.actors, movies.release_date, movies.duration, cinema.name,
+cinema_date.name_date, cinema_time.name_time, cinema_location.name_location
+	FROM movies
+    JOIN movie_schedules On movie_id = movies.id
+    JOIN cinema ON cinema.id = cinema_id
+    JOIN cinema_date ON cinema_date.id = date_id
+    JOIN cinema_time ON cinema_time.id = time_id
+    JOIN cinema_location ON cinema_location.id = location_id 
+    WHERE movies.id = $1 AND movie_schedules.id = movie_id;
+
+	SELECT movie_schedules.movie_id, movies.tittle, movies.genre, 
+movies.images, movies.synopsis, movies.author, 
+movies.actors, movies.release_date, movies.duration, cinema.name,
+cinema_date.name_date, cinema_time.name_time, cinema_location.name_location
+	FROM movies
+    JOIN movie_schedules On movie_id = movies.id
+    JOIN cinema ON cinema.id = cinema_id
+    JOIN cinema_date ON cinema_date.id = date_id
+    JOIN cinema_time ON cinema_time.id = time_id
+    JOIN cinema_location ON cinema_location.id = location_id 
+    WHERE movie_schedules.movie_id = $1 AND cinema_location.name_location ILIKE $2;
 CREATE TABLE movie_schedules (
     id serial primary key,
     movie_id int REFERENCES movies(id),
@@ -198,29 +221,6 @@ CREATE TABLE movie_schedules (
     updated_at timestamp
 );
 
-SELECT cinema_date.name_date 
-from movie_schedules
-JOIN cinema_date ON date_id = cinema_date.id
-WHERE cinema_date.name_date = $1;
-SELECT cinema_date.name_date 
-from movie_schedules
-JOIN cinema_date ON date_id = cinema_date.id
-WHERE cinema_date.id = 1;
-
-SELECT movies.id, cinema.name, cinema_location.name_location, cinema_date.name_date, 
-		cinema_time.name_time
-	FROM movie_schedules
-	JOIn movies ON movie_id = movies.id
-	JOIN cinema ON cinema_id = cinema.id
-	JOIN cinema_location ON location_id = cinema_location.id
-	JOIN cinema_date ON date_id = cinema_date.id
-	JOIN cinema_time ON time_id = cinema_time.id
-	WHERE movie_id = $1 
-    AND cinema_location.name_location = $2 
-	AND cinema_date.name_date = $3 
-    AND cinema_time.name_time = $4;
-
-select * from profile;
 INSERT INTO movie_schedules (movie_id, cinema_id, date_id, time_id,
 location_id) VALUES 
 (1,1,1,1,1),

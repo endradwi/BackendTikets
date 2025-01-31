@@ -48,15 +48,14 @@ type Orders struct {
 }
 
 type MoviesCinema struct {
-	Id              int    `json:"id"`
-	Tittle          string `json:"tittle" form:"tittle"`
-	Genre           string `json:"genre" form:"genre"`
-	Images          string `json:"image" form:"image"`
-	Cinema          string `json:"cinema" form:"cinema"`
-	Cinema_date     string `json:"cinema_date" form:"cinema_date"`
-	Cinema_time     string `json:"cinema_time" form:"cinema_time"`
-	Cinema_location string `json:"cinema_location" form:"cinema_location"`
+	Movie       MoviesNoTag
+	Cinema      string    `json:"cinema" form:"cinema"`
+	Cinema_date time.Time `json:"cinema_date" form:"cinema_date"`
+	Cinema_time time.Time `json:"cinema_time" form:"cinema_time"`
+	Location    string    `json:"location" form:"location"`
+	// Tag          string    `json:"tag" form:"tag"`
 }
+type ListAllCinema []MoviesCinema
 
 type seat string
 
@@ -80,11 +79,11 @@ type GetCinemaDTO struct {
 	Time     string `form:"time"`
 }
 type GetCinema struct {
-	Movie_Id int
-	Cinema   string
-	Location string
-	Date     time.Time
-	Time     time.Time
+	Movie_Id int       `json:"movie_id" form:"movie_id"`
+	Cinema   string    `json:"cinema" form:"cinema"`
+	Location string    `json:"location" form:"location"`
+	Date     time.Time `json:"date" form:"date"`
+	Time     time.Time `json:"time" form:"time"`
 }
 
 type TotalSeatCinema struct {
@@ -129,37 +128,36 @@ func OrderTicket(data OrderBody) OrderData {
 	return order
 }
 
-func BookingCinema(paramId int, searchTime string, searchDate string, searchLocation string) ListCinema {
+func BookingCinema(paramId int, Location string) ListAllCinema {
 	conn := lib.DB()
 	defer conn.Close(context.Background())
-	// var movie ListCinema
+	// var movie MoviesNoTag
 
-	// searchingTime := fmt.Sprintf("%%%s%%", searchTime)
-	// searchingDate := fmt.Sprintf("%%%s%%", searchDate)
-	searchingLocation := fmt.Sprintf("%%%s%%", searchLocation)
+	searchLoc := fmt.Sprintf("%%%s%%", Location)
 
 	rows, err := conn.Query(context.Background(), `
-	SELECT movies.id, movies.tittle, movies.genre,
-	movies.images, cinema.name, cinema_time.name_time,
-	cinema_date.name_date, cinema_location.name_location
-	FROM cinema 
-    JOIN movies ON cinema.movies_id = movies.id
-	JOIN cinema_time ON cinema_time.cinema_id = cinema.id
-	JOIN cinema_date ON cinema_date.cinema_id = cinema.id
-	JOIN cinema_location ON cinema_location.cinema_id = cinema.id
-    WHERE movies.id = $1 AND cinema_time.name_time = $2
-	AND cinema_date.name_date = $3 AND cinema_location.name_location ILIKE $4
-	`, paramId, searchTime, searchDate, searchingLocation)
-	log.Println("data rows =", rows)
+	SELECT movie_schedules.movie_id, movies.tittle, movies.genre, 
+movies.images, movies.synopsis, movies.author, 
+movies.actors, movies.release_date, movies.duration, cinema.name,
+cinema_date.name_date, cinema_time.name_time, cinema_location.name_location
+	FROM movies
+    JOIN movie_schedules On movie_id = movies.id
+    JOIN cinema ON cinema.id = cinema_id
+    JOIN cinema_date ON cinema_date.id = date_id
+    JOIN cinema_time ON cinema_time.id = time_id
+    JOIN cinema_location ON cinema_location.id = location_id 
+    WHERE movie_schedules.movie_id = $1 AND cinema_location.name_location ILIKE $2
+	`, paramId, searchLoc)
 	if err != nil {
-		log.Println("data error=", err)
+		fmt.Println(err)
 	}
-
 	cinema, err := pgx.CollectRows(rows, pgx.RowToStructByName[MoviesCinema])
 	if err != nil {
-		log.Println("data error=", err)
+		fmt.Println(err)
 	}
-	log.Println("data cinema =", cinema)
+	// .Scan(&movie.Id, &movie.Tittle, &movie.Genre, &movie.Image,
+	// &movie.Synopsis, &movie.Author, &movie.Actors,
+	// &movie.Release_date, &movie.Duration)
 	return cinema
 }
 
@@ -180,8 +178,11 @@ func FindCinema(input GetCinemaDTO) (GetCinema, error) {
 	// return
 	// }
 
-	log.Println("data =", input.Time)
-	log.Println("data =", input.Date)
+	log.Println("data time=", input.Time)
+	log.Println("data date=", input.Date)
+	log.Println("data location=", input.Location)
+	// log.Println("data movie_id=", input.MovieId)
+
 	// log.Println(parsedDate)
 	// log.Println(parsedTime)
 
@@ -201,8 +202,10 @@ func FindCinema(input GetCinemaDTO) (GetCinema, error) {
 	`, input.MovieId, input.Location, input.Date, input.Time).Scan(&movie.Movie_Id, &movie.Cinema, &movie.Location,
 		&movie.Date, &movie.Time)
 	fmt.Println(err)
-	fmt.Println("Input values:", input.MovieId, input.Location, input.Date, input.Time)
-	fmt.Println("Input movie:", movie)
+	log.Println("data time=", movie.Time)
+	log.Println("data date=", movie.Date)
+	log.Println("data location=", movie.Location)
+	log.Println("data movie_id=", movie.Movie_Id)
 	// fmt.Println("Query executed successfully, movie:", movie)
 
 	// fmt.Println("data = )
